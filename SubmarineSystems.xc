@@ -18,7 +18,7 @@ var $gY1 = 140	;y Position
 
 ;-- FUNCTION: Writes a centered label on screen
 function @writeScreenHeader($screen:screen, $id:text, $color:number)
-	var $textLen = size($screenIDPretext) + 8 
+	var $textLen = size($screenIDPretext & $id)
 	var $x = ($screen.width / 2) - ($screen.char_w * $textLen / 2)
 	var $y = 1 ;Single pixel buffer from top of screen
 	$screen.write($x, $y, $color, text("{}{}", $screenIDPretext, $id))
@@ -47,12 +47,12 @@ function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 	var $downPressed = 0
 	var $upPressed = 0
 	
-	if $screenTR.button_rect($x, $y, $x+$gBX, $y+$gBY, black, gray)
+	if $screen.button_rect($x, $y, $x+$gBX, $y+$gBY, black, gray)
 		$bUpColor = $pressedColor
 		$gF1 += 1
 		$upPressed = 1
 
-	if $screenTR.button_rect($x, $y+10, $x+$gBX, $y+$gBY+10, black, gray)
+	if $screen.button_rect($x, $y+10, $x+$gBX, $y+$gBY+10, black, gray)
 		$bDownColor = $pressedColor
 		$gF1 -= 1
 		$downPressed = 1
@@ -63,9 +63,9 @@ function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 	
 	;Pressed Visual
 	if $upPressed == 1
-		$screenTR.draw_rect($x, $y, $x+$gBX, $y+$gBY, $bUpColor, $bUpColor)
+		$screen.draw_rect($x, $y, $x+$gBX, $y+$gBY, $bUpColor, $bUpColor)
 	if $downPressed == 1
-		$screenTR.button_rect($x, $y+10, $x+$gBX, $y+$gBY+10, $bDownColor, $bDownColor)
+		$screen.button_rect($x, $y+10, $x+$gBX, $y+$gBY+10, $bDownColor, $bDownColor)
 	
 	
 
@@ -94,7 +94,6 @@ update
 	
 
 
-	
 
 	
 
