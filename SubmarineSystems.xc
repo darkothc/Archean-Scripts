@@ -15,6 +15,7 @@ var $gF1 = 90	;Fill Level
 var $gX1 = 20	;x Position
 var $gY1 = 140	;y Position
 
+var $toggle:number
 
 ;-- FUNCTION: Writes a centered label on screen
 function @writeScreenHeader($screen:screen, $id:text, $color:number)
@@ -36,7 +37,7 @@ function @drawGauge($screen:screen, $x:number, $y:number, $fill:number)
 	$fillHeight = clamp($fill, 0, 100)
 	if $fillHeight > 0
 		$screen.draw_rect($x+$w, $y-($fillHeight), $x, $y, black, cyan)
-	print($fill, $gF1)
+		
 		
 function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 	var $gBX = 20	;Guage button size x
@@ -79,8 +80,12 @@ init
 
 ;-- UPDATE
 update
+	var $balLevel = input_number("balastR",0)
+	var $bX1 = 60
+	var $bY1 = 140
+
 	$screenTR.blank(0)
-	
+	print($toggle, $gF1, text("{0.00}%", text(mul($balLevel,100))))
 	;Gauge Position x, y
 
 	@writeScreenHeader($screenTR, "OpScreenTR", red)
@@ -92,6 +97,19 @@ update
 	@drawGaugeButtons($screenTR, $gX1, $gY1, $gF1)
 	
 	
+	;# Balaste Test
+	@drawGauge($screenTR, $bX1, $bY1, mul($balLevel,100))
+	if $screenTR.button_rect(100, 100, 120, 120, black, green)
+		$toggle++
+	if $toggle > 1
+		$toggle = 0
+	if $toggle == 1
+		output_number("PumpOut", 0, -1)
+		else
+	if $toggle == 0
+		output_number("PumpOut", 0, 0)
+		
+		
 
 
 
