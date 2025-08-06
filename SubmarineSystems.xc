@@ -2,11 +2,13 @@
 include "libColor.xc"	;Wider list of color variables include e.g. $dark_gray, $olive, $teal
 
 ;-- GLOBAL SCOPE
-;
+
+;Screens 
 var $screenTR = screen("OpScreenTR", 0)	;Top Right Screen
 var $screenBR = screen("OpScreenBR", 0)	;Bottom Right Screen
 var $screenTL = screen("OpScreenTL", 0)	;Top Left Screen
 var $screenBL = screen("OpScreenBL", 0)	;Bottom Left Screen
+
 
 const $screenIDPretext = "Screen ID: "
 
@@ -15,7 +17,16 @@ var $gF1 = 90	;Fill Level
 var $gX1 = 20	;x Position
 var $gY1 = 140	;y Position
 
-var $toggle:number
+var $screenOpaque = 0
+
+;# PLACEHOLDER PUMP VARIABLES
+var $toggleIn:number
+var $toggleOut:number
+
+;# Valve Override
+var $override = 1	;MANUAL OVERRIDE
+var $valvesInit = 0
+array $valves : text
 
 ;-- FUNCTION: Writes a centered label on screen
 function @writeScreenHeader($screen:screen, $id:text, $color:number)
@@ -38,7 +49,7 @@ function @drawGauge($screen:screen, $x:number, $y:number, $fill:number)
 	if $fillHeight > 0
 		$screen.draw_rect($x+$w, $y-($fillHeight), $x, $y, black, cyan)
 		
-		
+;-- #DEBUG GAUGE FUNCTION: Draws a Gauge Button at x, y
 function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 	var $gBX = 20	;Guage button size x
 	var $gBY = 10	;Guage button size y
@@ -58,7 +69,6 @@ function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 		$gF1 -= 1
 		$downPressed = 1
 
-	
 	$screenTR.draw_triangle($x+5,$y+7, $x+15,$y+7, $x+10,$y+1, black, white)	;Up Arrow
 	$screenTR.draw_triangle($x+5,$y+12, $x+15,$y+12, $x+10,$y+18, black, white)	;Down Arrow
 	
@@ -68,53 +78,88 @@ function @drawGaugeButtons($screen:screen, $x:number, $y:number, $fill:number)
 	if $downPressed == 1
 		$screen.button_rect($x, $y+10, $x+$gBX, $y+$gBY+10, $bDownColor, $bDownColor)
 	
-	
+;-- FUNCTION: Sytstem for setting screen as transparent/opaque
+function @screenBackground($screen:screen, $x:number, $y:number)
+	if $screenOpaque
+		$screen.blank()
+	else
+		$screen.blank(0)
+	if $screen.button_rect($x, $y, $x+8, $y+8, gray, white)
+		$screenOpaque = 1-$screenOpaque
 
+
+;-- FUNCTION: Override for opening all valves TESTING PURPOSES
+function @valveOverride($toggle:number)
+	if $valvesInit == 0
+		$valves.append("vIF", "vOF", "vIB", "vOB", "vIR", "vOR", "vIL", "vOL")
+		$valvesInit = 1	
+	foreach $valves ($i, $valve)
+		output_number($valve,0,$toggle)
 
 ;-- INIT
 init
-	$screenTR.blank(0)
-	$screenBR.blank()
-	$screenTL.blank(0)
-	$screenBL.blank()
+	@valveOverride($override)
+
+	;$screenTR.blank(0)
+	;$screenBR.blank()
+	;$screenTL.blank(0)
+	;$screenBL.blank()
 
 ;-- UPDATE
 update
-	var $balLevel = input_number("balastR",0)
+	var $balLevel = input_number("ballastR",0)
 	var $bX1 = 60
 	var $bY1 = 140
 
-	$screenTR.blank(0)
-	print($toggle, $gF1, text("{0.00}%", text(mul($balLevel,100))))
-	;Gauge Position x, y
+	@screenBackground($screenTR, 1, 1)
+	
+	
+	;# DEBUG CONSOLE OUTPUTS
+	print(text("{}(in) {}(out) {}(gF1) {00.00}%",$toggleIn, $toggleOut, $gF1, mul($balLevel,100)))
+	print(text("{00.00}(in) {00.00}(out) FLOW RATE", input_number("pumpIn",0), input_number("pumpOut",0)))
 
+	
 	@writeScreenHeader($screenTR, "OpScreenTR", red)
 	@writeScreenHeader($screenBR, "OpScreenBR", green)
 	@writeScreenHeader($screenTL, "OpScreenTL", yellow)
 	@writeScreenHeader($screenBL, "OpScreenBL", cyan)
 	
+	
+	;Debug Guage
 	@drawGauge($screenTR, $gX1, $gY1, $gF1)
 	@drawGaugeButtons($screenTR, $gX1, $gY1, $gF1)
 	
 	
-	;# Balaste Test
+	;# Ballast Test
 	@drawGauge($screenTR, $bX1, $bY1, mul($balLevel,100))
-	if $screenTR.button_rect(100, 100, 120, 120, black, green)
-		$toggle++
-	if $toggle > 1
-		$toggle = 0
-	if $toggle == 1
-		output_number("PumpOut", 0, -1)
-		else
-	if $toggle == 0
-		output_number("PumpOut", 0, 0)
-		
-		
-
-
-
 	
-
+	
+	
+	;# Pump Controller
+	if $screenTR.button_rect(20, 180, 40, 200, black, green)
+		$toggleIn++
+		
+	if $toggleIn > 1
+		$toggleIn = 0
+	if $toggleIn == 1
+		output_number("pumpIn", 0, 1)
+		;output_number("PumpOut", 0, -1) ;FOR TESTING ONLY
+		else
+	if $toggleIn == 0
+		output_number("pumpIn", 0, 0)
+		
+		
+	if $screenTR.button_rect(40, 180, 60, 200, black, Red)
+		$toggleOut++
+		
+	if $toggleOut > 1
+		$toggleOut = 0
+	if $toggleOut == 1
+		output_number("pumpOut", 0, 1)
+		;output_number("PumpIn", 0, -1) ;FOR TESTING ONLY
+		else
+	if $toggleOut == 0
+		output_number("pumpOut", 0, 0)	
 
 
 	;--- DEBUG INFO ---
