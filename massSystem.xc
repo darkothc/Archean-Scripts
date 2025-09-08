@@ -31,78 +31,47 @@ function @CargoWeights_New():text
 	return $w
 
 ;===========================================================
-; FUNCTION: find cargo weight from cargo string
+; FUNCTION: find cargo weight from cargo string (Foreach Code Modifaction from Lith)
 ;===========================================================
 function @getCargoWeight($cargoStr:text, $weightsObj:text):number
-	var $total = 0
-	var $s = $cargoStr
-	var $open = 0
-	var $close = 0
-	var $qtyStr = ""
-	var $qty = 0
-	var $perUnit = 0
-	var $name = ""
+	var $total = 0 
 
-	; Loop until nothing left to parse
-	while size($s) > 0
-		; Trim leading dots
-		while size($s) > 0 and substring($s,0,1) == "."
-			$s = substring($s,1,size($s)-1)
-;-- Debug string processing
-		;print("After trimming dots: ", $s)
+	var $perUnit = 0 
 
-		if size($s) == 0
-			break
 
-		; Find the opening brace
-		$open = find($s,"{")
-		if $open < 0
-			break
+	foreach $cargoStr ($name, $qty)
 
-		; Extract item name (before '{')
-		$name = substring($s,0,$open)
+		;# Get per-unit weight from weights object
 
-		; Find the closing brace
-		$close = find($s,"}")
-		if $close < 0 or $close <= $open
-			break
 
-		; Extract quantity string (between '{' and '}')
-		var $qtyLen = $close - ($open + 1)
-		if $qtyLen <= 0
-			$qtyStr = "0"
-		else
-			$qtyStr = substring($s,$open+1,$qtyLen)
-
-		; Force num for quantity
-		$qty = mul($qtyStr, 1)
-		if $qty <= 0
-			$qty = 0
-
-		; Get per-unit weight from weights object
 		$perUnit = $weightsObj.$name
+
+
 		if $perUnit == 0
+
+
 			$perUnit = 0
+
+
+
 			print("WARNING: No weight found for ", $name, ", using 0")
+
+
+
 		else
+
+
 			$perUnit = mul($perUnit, 1) ; Ensure numeric
+
+
+
 
 		$total += mul($qty, $perUnit)
 
-;-- Debug prints
-		;print("Name: ", $name)
-		;print("QtyStr: ", $qtyStr)
-		;print("Qty: ", $qty)
-		;print("PerUnit: ", $perUnit)
-		;print("Total so far: ", $total)
 
-		; Advance to next item
-		if $close + 1 >= size($s)
-			$s = ""
-		else
-			$s = substring($s,$close+1,size($s)-($close+1))
 
 	return $total
+
 
 
 ;-- INIT
