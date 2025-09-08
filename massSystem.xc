@@ -31,51 +31,24 @@ function @CargoWeights_New():text
 	return $w
 
 ;===========================================================
-; FUNCTION: find cargo weight from cargo string (Foreach Code Modifaction from Lith)
+; FUNCTION: find cargo weight from cargo string (Foreach Code Modification - Lith)
 ;===========================================================
 function @getCargoWeight($cargoStr:text, $weightsObj:text):number
 	var $total = 0 
-
 	var $perUnit = 0 
 
-
 	foreach $cargoStr ($name, $qty)
-
 		;# Get per-unit weight from weights object
-
-
 		$perUnit = $weightsObj.$name
-
-
 		if $perUnit == 0
-
-
 			$perUnit = 0
-
-
-
 			print("WARNING: No weight found for ", $name, ", using 0")
-
-
-
 		else
-
-
 			$perUnit = mul($perUnit, 1) ; Ensure numeric
-
-
-
-
 		$total += mul($qty, $perUnit)
-
-
-
 	return $total
 
-
-
 ;-- INIT
-
 init
 	; Build cargo weights and store it
 	$weights = @CargoWeights_New()
